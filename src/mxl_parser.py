@@ -16,18 +16,33 @@ def duration_per_timestep(mxl_file):
     tpm = mxl_file.barlines[1].time # timesteps per measure, Assuming no measure changes for now
     return time_signature[0] * (4/time_signature[1]) / tpm
 
+def get_current_notes(notes, t, prev_index):
+    """Get all notes that are playing at a given timestep t.
+
+    Notes are assumed to be sorted by time, so prev_index is used to avoid iterating through the entire list.
+    """
+
+    current_notes = []
+    for i in range(prev_index, len(notes)):
+        if notes[i].time == t:
+            current_notes.append(notes[i])
+        elif notes[i].time > t:
+            return current_notes, i
+    return current_notes, len(notes)
 
 def mxl_to_seq(mxl_file):
     """Convert a given mxl file to a ptp string of notes."""
 
     seq = []
+    prev_index = 0
     t_playing = 0 # Timesteps remaining until no notes are playing
     t_rest = 0 # Timesteps a rest has been playing
     notes = mxl_file.tracks[0].notes
+    note_timesteps = [note.time for note in notes]
     t_dur = duration_per_timestep(mxl_file)
 
-    for t in tqdm(range(notes[0].time, notes[len(notes)-1].time + 1)):
-        current_notes = [note for note in notes if note.time == t]
+    for t in tqdm(range(notes[len(notes)-1].time + 1)):
+        current_notes, prev_index = get_current_notes(notes, t, prev_index)
         if current_notes:
             if t_rest > 0:
                 seq.append(f"_/{t_rest * t_dur}")
