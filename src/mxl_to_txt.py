@@ -32,14 +32,17 @@ def get_current_notes(notes, t, prev_index):
     return current_notes, len(notes)
 
 
-def handle_barline(bar_index, seq, mxl_file, t):
+def handle_barline(bar_index, seq, mxl_file, t, split=True):
     """Add a barline to the sequence if the current timestep is a barline.
 
     @TODO: Fix rests over multiple bars.
+    @TODO: Fix space before newline / file.
     @TODO: Segment a certain number of measures for processing later on.
     """
 
-    if t == mxl_file.barlines[bar_index].time:
+    if bar_index < len(mxl_file.barlines) and t == mxl_file.barlines[bar_index].time:
+        if split and bar_index % 3 == 0 and bar_index != 0:
+            seq.append(":")
         seq.append("|")
         return bar_index + 1
     return bar_index
@@ -73,28 +76,42 @@ def mxl_to_seq(mxl_file):
 
     seq = []
     prev_index, t_playing, t_rest = 0, 0, 0
-    bar_index = 1 # Skip first barline
+    bar_index = 0
     notes = mxl_file.tracks[0].notes
     t_dur = duration_per_timestep(mxl_file)
 
-    for t in tqdm(range(notes[len(notes)-1].time + 1)):
+    for t in range(notes[len(notes)-1].time + 1):
+    # for t in tqdm(range(notes[len(notes)-1].time + 1)):
         bar_index = handle_barline(bar_index, seq, mxl_file, t)
         current_notes, prev_index = get_current_notes(notes, t, prev_index)
         t_playing, t_rest = parse_chord(current_notes, t_dur, t_playing, t_rest, seq)
 
     return f"{' '.join(seq)}"
 
+def write_seq_to_file(composition, seq):
+    txt_path = "data/txt"
+    with open(f'{txt_path}/{composition}.txt', 'w') as file:
+        file.write(seq)
+        file.close()
+
+def split_seq_and_write(composition, seq):
+    split_txt_path = "data/split_txt"
+    segments = seq.split(':')
+    for i, segment in enumerate(segments):
+        with open(f"{split_txt_path}/{composition}_{i}.txt", 'w') as file:
+            file.write(segment.strip())
+            file.close()
 
 def main():
-    data_path = "data"
-    compositions = os.listdir(data_path)
+    mxl_path = "data/mxl"
+    split_txt_path = "data/split_txt"
+    compositions = tqdm(os.listdir(mxl_path))
     for c in compositions:
-        print(f"Parsing {c}")
-        mxl_file = muspy.read(f'{data_path}/{c}/{c}.mxl')
+        compositions.set_description(f"Parsing {c}")
+        mxl_file = muspy.read(f'{mxl_path}/{c}')
         parsed = mxl_to_seq(mxl_file)
-        with open(f'{data_path}/{c}/{c}.txt', 'w') as file:
-            file.write(parsed)
-        file.close()
+        split_seq_and_write(c, parsed)
+        # write_seq_to_file(c, parsed)
 
 if __name__ == "__main__":
     main()
