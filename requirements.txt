@@ -1,3 +1,4 @@
 defusedxml==0.7.1
-muspy==0.5.0
+music21==9.1.0
+pydub==0.25.1
 tqdm==4.66.1
