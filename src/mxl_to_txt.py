@@ -2,116 +2,72 @@ import defusedxml
 defusedxml.defuse_stdlib() # XML security issues patch
 
 import os
-import muspy
+import music21
 from tqdm import tqdm
 
-def duration_per_timestep(mxl_file):
-    """Calculate the duration of a single timestep in ptp format.
+from constants import MXL_DIR, TEST_DIR, NOTE_DICT, SPLIT_TXT_DIR
 
-    Given time measure (n,d) and the timesteps per measure (tpm), this formula is given by:
-    t_dur = n*(4/d)/tpm.
+def parse_chord(chord):
+    """Convert a chord to a ptp string.
+
+    @TODO: Handle complex durations.
     """
 
-    time_signature = (mxl_file.time_signatures[0].numerator, mxl_file.time_signatures[0].denominator)
-    tpm = mxl_file.barlines[2].time - mxl_file.barlines[1].time # timesteps per measure accounting for "opmaat", Assuming no measure changes for now
-    return time_signature[0] * (4/time_signature[1]) / tpm
+    chord_seq = []
 
+    if chord.isRest:
+        dots = ">" * chord.duration.dots
+        if chord.duration.type == "complex":
+            return f"_COMPLEX{dots}"
+        return f"_{NOTE_DICT[chord.duration.type]}{dots}"
 
-def get_current_notes(notes, t, prev_index):
-    """Get all notes that are playing at a given timestep t.
-
-    Notes are assumed to be sorted by time, so prev_index is used to avoid iterating through the entire list.
-    """
-
-    current_notes = []
-    for i in range(prev_index, len(notes)):
-        if notes[i].time == t:
-            current_notes.append(notes[i])
-        else:
-            return current_notes, i
-    return current_notes, len(notes)
-
-
-def handle_barline(bar_index, seq, mxl_file, t, split=True):
-    """Add a barline to the sequence if the current timestep is a barline.
-
-    @TODO: Fix rests over multiple bars.
-    @TODO: Fix space before newline / file.
-    @TODO: Segment a certain number of measures for processing later on.
-    """
-
-    if bar_index < len(mxl_file.barlines) and t == mxl_file.barlines[bar_index].time:
-        if split and bar_index % 3 == 0 and bar_index != 0:
-            seq.append(":")
-        seq.append("|")
-        return bar_index + 1
-    return bar_index
-
-
-def parse_chord(current_notes, t_dur, t_playing, t_rest, seq):
-    """Convert the notes played at to a ptp string.
-
-    If applicable, add a rest to the sequence.
-    """
-
-    if current_notes:
-        if t_rest > 0:
-            seq.append(f"_/{t_rest * t_dur}")
-            t_rest = 0
-        chord = []
-        for note in current_notes:
-            t_playing = max(t_playing, note.duration)
-            chord.append(f'{note.pitch_str}/{note.duration * t_dur}')
-        seq.append(f"{','.join(chord)}")
-
-    else:
-        if t_playing <= 0:
-            t_rest = t_rest + 1
-
-    return t_playing-1, t_rest
-
+    for note in chord:
+        dots = ">" * note.duration.dots
+        note_seq = f"{note.pitches[0]}{NOTE_DICT[note.duration.type]}{dots}"
+        chord_seq.append(note_seq)
+    return ",".join(chord_seq)
 
 def mxl_to_seq(mxl_file):
     """Convert a given mxl file to a ptp string of notes."""
 
     seq = []
-    prev_index, t_playing, t_rest = 0, 0, 0
-    bar_index = 0
-    notes = mxl_file.tracks[0].notes
-    t_dur = duration_per_timestep(mxl_file)
+    chordified_mxl = mxl_file.chordify()
+    chords = chordified_mxl.flatten().notesAndRests
+    time_signature = mxl_file.getTimeSignatures()[0]
+    quarters_per_measure = time_signature.numerator * 4 / time_signature.denominator
+    total_duration = 0
+    measure_count = 0
 
-    for t in range(notes[len(notes)-1].time + 1):
-    # for t in tqdm(range(notes[len(notes)-1].time + 1)):
-        bar_index = handle_barline(bar_index, seq, mxl_file, t)
-        current_notes, prev_index = get_current_notes(notes, t, prev_index)
-        t_playing, t_rest = parse_chord(current_notes, t_dur, t_playing, t_rest, seq)
-
-    return f"{' '.join(seq)}"
-
-def write_seq_to_file(composition, seq):
-    txt_path = "data/txt"
-    with open(f'{txt_path}/{composition}.txt', 'w') as file:
-        file.write(seq)
-        file.close()
+    for chord in chords:
+        total_duration += chord.duration.quarterLength
+        if total_duration > quarters_per_measure:
+            measure_count += 1
+            if measure_count % 3 == 0:
+                seq.append(":")
+            else:
+                seq.append("|")
+            total_duration = total_duration % quarters_per_measure
+        seq.append(parse_chord(chord))
+    return " ".join(seq)
 
 def split_seq_and_write(composition, seq):
-    split_txt_path = "data/split_txt"
+    """Write each split sequence (a given number of bars) to a separate text file."""
+
     segments = seq.split(':')
     for i, segment in enumerate(segments):
-        with open(f"{split_txt_path}/{composition}_{i}.txt", 'w') as file:
+        with open(f"{SPLIT_TXT_DIR}/{composition[:-4]}_{i}.txt", 'w') as file:
             file.write(segment.strip())
             file.close()
 
 def main():
-    mxl_path = "data/mxl"
-    split_txt_path = "data/split_txt"
-    compositions = tqdm(os.listdir(mxl_path))
+    compositions = tqdm(os.listdir(MXL_DIR))
+    # compositions = os.listdir(TEST_DIR)
     for c in compositions:
         compositions.set_description(f"Parsing {c}")
-        mxl_file = muspy.read(f'{mxl_path}/{c}')
-        parsed = mxl_to_seq(mxl_file)
-        split_seq_and_write(c, parsed)
-        # write_seq_to_file(c, parsed)
+        mxl_file = music21.converter.parse(f'{MXL_DIR}/{c}')
+        # mxl_file = music21.converter.parse(f'{TEST_DIR}/{c}')
+        seq = mxl_to_seq(mxl_file)
+        split_seq_and_write(c, seq)
 
 if __name__ == "__main__":
     main()

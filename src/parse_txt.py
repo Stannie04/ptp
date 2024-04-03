@@ -1,23 +1,32 @@
 import os
 import re
 
+from constants import SPLIT_TXT_DIR
+
 def count_notes(seq):
+    """Count the number of notes in a sequence, excluding rests."""
+
     regex = r'(?<!_)\/' # All occurences of / without an underscore (rest) before
     notes = re.findall(regex, seq)
     return len(notes)
 
-def txt_to_string(txt_dir, file):
-    with open(f"{txt_dir}/{file}") as f:
-            seq = f.read()
-            f.close()
-    return seq
+def txt_to_string(path, file):
+    """Read a txt file and return its contents as a string."""
+
+    with open(f"{path}/{file}") as f:
+        return f.read()
+
+def get_split_composition_files(file):
+    """Return the split txt files corresponding to the given filename."""
+
+    split_txt_files = os.listdir(SPLIT_TXT_DIR)
+    regex = r'{}_[0-9]+\.txt'.format(file[:-4])
+    return [f for f in split_txt_files if re.match(regex, f)]
 
 def main():
-    txt_dir = "data/split_txt"
-    # txt_dir = "data/whole_scores"
-    txt_files = os.listdir(txt_dir)
-    for f in txt_files:
-        seq = txt_to_string(txt_dir, f)
+    split_txt_files = os.listdir(SPLIT_TXT_DIR)
+    for f in split_txt_files:
+        seq = txt_to_string(SPLIT_TXT_DIR, f)
         n_notes = count_notes(seq)
         print(f"{f}: {n_notes}")
 
