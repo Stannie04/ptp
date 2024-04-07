@@ -53,9 +53,12 @@ def mxl_to_seq(mxl_file):
 def split_seq_and_write(composition, seq):
     """Write each split sequence (a given number of bars) to a separate text file."""
 
+    if not os.path.exists(f"{SPLIT_TXT_DIR}/{composition[:-4]}"):
+        os.makedirs(f"{SPLIT_TXT_DIR}/{composition[:-4]}")
+
     segments = seq.split(':')
     for i, segment in enumerate(segments):
-        with open(f"{SPLIT_TXT_DIR}/{composition[:-4]}_{i}.txt", 'w') as file:
+        with open(f"{SPLIT_TXT_DIR}/{composition[:-4]}/{composition[:-4]}_{i}.txt", 'w') as file:
             file.write(segment.strip())
             file.close()
 

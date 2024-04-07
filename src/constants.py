@@ -1,7 +1,9 @@
 MXL_DIR = "data/mxl"
 SPLIT_TXT_DIR = "data/split_txt"
 TEST_DIR = "data/test"
-WAV_DIR = "data/wav"
+AUDIO_DIR = "data/audio"
+ALIGNMENT_DIR = "data/alignments"
+SPLIT_AUDIO_DIR = "data/split_audio"
 
 NOTE_DICT = {
     "whole": "w",
