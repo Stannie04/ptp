@@ -2,10 +2,11 @@ import defusedxml
 defusedxml.defuse_stdlib() # XML security issues patch
 
 import os
+import sys
 import music21
 from tqdm import tqdm
 
-from constants import MXL_DIR, TEST_DIR, NOTE_DICT, SPLIT_TXT_DIR
+from constants import MXL_DIR, NOTE_DICT, SPLIT_TXT_DIR
 
 def parse_chord(chord):
     """Convert a chord to a ptp string.
@@ -33,6 +34,7 @@ def mxl_to_seq(mxl_file):
     seq = []
     chordified_mxl = mxl_file.chordify()
     chords = chordified_mxl.flatten().notesAndRests
+    print(chords)
     time_signature = mxl_file.getTimeSignatures()[0]
     quarters_per_measure = time_signature.numerator * 4 / time_signature.denominator
     total_duration = 0
@@ -63,14 +65,21 @@ def split_seq_and_write(composition, seq):
             file.close()
 
 def main():
-    compositions = tqdm(os.listdir(MXL_DIR))
-    # compositions = os.listdir(TEST_DIR)
-    for c in compositions:
-        compositions.set_description(f"Parsing {c}")
-        mxl_file = music21.converter.parse(f'{MXL_DIR}/{c}')
-        # mxl_file = music21.converter.parse(f'{TEST_DIR}/{c}')
-        seq = mxl_to_seq(mxl_file)
-        split_seq_and_write(c, seq)
+    if len(sys.argv) != 1:
+        try:
+            mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
+            seq = mxl_to_seq(mxl_file)
+            split_seq_and_write(sys.argv[1], seq)
+            print(f"Successfully parsed {sys.argv[1]}.")
+        except:
+            print(f"ERROR: Could not parse {sys.argv[1]}.")
+    else:
+        compositions = tqdm(os.listdir(MXL_DIR))
+        for c in compositions:
+            compositions.set_description(f"Parsing {c}")
+            mxl_file = music21.converter.parse(f'{MXL_DIR}/{c}')
+            seq = mxl_to_seq(mxl_file)
+            split_seq_and_write(c, seq)
 
 if __name__ == "__main__":
     main()
