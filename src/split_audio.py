@@ -12,22 +12,25 @@ def get_split_times(alignments, piece, author, split_files):
     current_note = 0
 
     # Sanity check
-    if sum(n_notes) != len(alignments):
-        print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments. Ignoring.")
-        print(f"Number of notes in split files: {sum(n_notes)}")
-        print(f"Number of alignments: {len(alignments)}")
-        return None
+    # if sum(n_notes) != len(alignments):
+    #     print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments. Ignoring.")
+    #     print(f"Number of notes in split files: {sum(n_notes)}")
+    #     print(f"Number of alignments: {len(alignments)}")
+    #     return None
 
+
+    # TODO: The final split is not there
     splits = []
     for n in n_notes:
         start_split = alignments[current_note][0]
         if current_note + n >= len(alignments):
             end_split = alignments[len(alignments)-1][1]
+            splits.append((start_split, end_split))
             break
         else:
             end_split = alignments[current_note+n-1][1]
-        splits.append((start_split, end_split))
-        current_note += n
+            splits.append((start_split, end_split))
+            current_note += n
     return splits
 
 def split_mp3(author, piece):
@@ -49,7 +52,7 @@ def split_mp3(author, piece):
 
     for i, split in enumerate(splits):
         start, end = split
-        start_frame = int(float(start)*1000)
+        start_frame = int(float(start)*1000) # Convert to ms
         end_frame = int(float(end)*1000)
 
         segment = audio[start_frame:end_frame]

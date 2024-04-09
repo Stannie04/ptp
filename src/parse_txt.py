@@ -15,11 +15,10 @@ def txt_to_string(file, piece):
         return f.read()
 
 def get_split_composition_files(score_name):
-    """Return the split txt files corresponding to the given filename.
+    """Return the split txt files corresponding to the given filename."""
 
-    @TODO: Numerically sort split files
-    """
-    return os.listdir(f"{SPLIT_TXT_DIR}/{score_name}")
+    file_list = os.listdir(f"{SPLIT_TXT_DIR}/{score_name}")
+    return sorted(file_list, key=lambda x: int(x.split('_')[-1].split('.')[0]))
 
 def main():
     txt_files = os.listdir(SPLIT_TXT_DIR)

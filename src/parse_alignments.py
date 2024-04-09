@@ -41,7 +41,7 @@ def merge_alignments_of_author(author, piece):
 def main():
     if len(sys.argv) != 3:
         print("Usage: python src/parse_alignments.py <author> <piece>")
-        sys.exit(1)
+        return
     merge_alignments_of_author(sys.argv[1], sys.argv[2])
     print(f"Successfully merged alignments for {sys.argv[1]} - {sys.argv[2]}.")
 
