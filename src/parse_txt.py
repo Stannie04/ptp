@@ -11,14 +11,17 @@ def count_notes(seq):
 def txt_to_string(file, piece):
     """Read a txt file and return its contents as a string."""
 
-    with open(f"{SPLIT_TXT_DIR}/{piece}/{file}") as f:
+    with open(f"{SPLIT_TXT_DIR}/{file}") as f:
         return f.read()
 
 def get_split_composition_files(score_name):
     """Return the split txt files corresponding to the given filename."""
 
-    file_list = os.listdir(f"{SPLIT_TXT_DIR}/{score_name}")
-    return sorted(file_list, key=lambda x: int(x.split('_')[-1].split('.')[0]))
+    file_list = os.listdir(f"{SPLIT_TXT_DIR}")
+    l = [f for f in file_list if re.match(f"{score_name}_\d+\.txt", f)]
+    if not l:
+        print(f"WARNING: No split files found for {l}")
+    return l
 
 def main():
     txt_files = os.listdir(SPLIT_TXT_DIR)

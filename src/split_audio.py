@@ -44,11 +44,10 @@ def split_mp3(author, piece):
     if splits is None:
         return
 
-    if not os.path.exists(f"{SPLIT_AUDIO_DIR}/{author}/{piece}"):
-        os.makedirs(f"{SPLIT_AUDIO_DIR}/{author}/{piece}")
-
     try: audio = AudioSegment.from_file(f"{AUDIO_DIR}/{author}/{audio_filename}.mp3")
     except: audio = AudioSegment.from_file(f"{AUDIO_DIR}/{author}/{audio_filename}.opus")
+
+    audio = audio.set_frame_rate(22050)
 
     for i, split in enumerate(splits):
         start, end = split
@@ -56,7 +55,7 @@ def split_mp3(author, piece):
         end_frame = int(float(end)*1000)
 
         segment = audio[start_frame:end_frame]
-        segment.export(f"{SPLIT_AUDIO_DIR}/{author}/{piece}/{audio_filename}_{i}.wav", format="wav")
+        segment.export(f"{SPLIT_AUDIO_DIR}/{audio_filename}_{i}.wav", format="wav", parameters=["-ac", "1"])
 
 
 def pieces_by_author(author):
@@ -70,16 +69,12 @@ def pieces_by_author(author):
     return pieces
 
 def main():
-    all_pieces = os.listdir(SPLIT_TXT_DIR)
     authors = tqdm(os.listdir(AUDIO_DIR))
     for a in authors:
         pieces = pieces_by_author(a)
         for p in pieces:
             authors.set_description(f"Splitting {a} - {p}")
-            if p in all_pieces:
-                split_mp3(a, p)
-            else:
-                print(f"WARNING: The file {p} is not a recognized piece. Ignoring.")
+            split_mp3(a, p)
 
 
 if __name__ == "__main__":
