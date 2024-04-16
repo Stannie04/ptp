@@ -3,8 +3,8 @@ import re
 
 from tqdm import tqdm
 from pydub import AudioSegment
-from parse_txt import get_split_composition_files, count_notes, txt_to_string
-from parse_alignments import alignments_from_csv
+from txt_parser import get_split_composition_files, count_notes, txt_to_string
+from alignments_parser import alignments_from_csv
 from constants import SPLIT_TXT_DIR, AUDIO_DIR, SPLIT_AUDIO_DIR
 
 def get_split_times(alignments, piece, author, split_files):
