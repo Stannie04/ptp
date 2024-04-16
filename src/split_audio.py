@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 
 from tqdm import tqdm
@@ -8,18 +9,16 @@ from alignments_parser import alignments_from_csv
 from constants import SPLIT_TXT_DIR, AUDIO_DIR, SPLIT_AUDIO_DIR
 
 def get_split_times(alignments, piece, author, split_files):
-    n_notes = [count_notes(txt_to_string(file, piece)) for file in split_files]
+    n_notes = [count_notes(txt_to_string(file)) for file in split_files]
     current_note = 0
 
     # Sanity check
-    # if sum(n_notes) != len(alignments):
-    #     print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments. Ignoring.")
-    #     print(f"Number of notes in split files: {sum(n_notes)}")
-    #     print(f"Number of alignments: {len(alignments)}")
-    #     return None
+    if sum(n_notes) != len(alignments):
+        print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments. Ignoring.")
+        print(f"Number of notes in split files: {sum(n_notes)}, {n_notes}")
+        print(f"Number of alignments: {len(alignments)}")
+        # return None
 
-
-    # TODO: The final split is not there
     splits = []
     for n in n_notes:
         start_split = alignments[current_note][0]
@@ -69,6 +68,9 @@ def pieces_by_author(author):
     return pieces
 
 def main():
+    if len(sys.argv) == 3:
+        split_mp3(sys.argv[1], sys.argv[2])
+        return
     authors = tqdm(os.listdir(AUDIO_DIR))
     for a in authors:
         pieces = pieces_by_author(a)

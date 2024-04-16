@@ -20,7 +20,7 @@ def get_split_composition_files(score_name):
     l = [f for f in file_list if re.match(f"{score_name}_\d+\.txt", f)]
     if not l:
         print(f"WARNING: No split files found for {l}")
-    return l
+    return sorted(l, key=lambda x: int(x.split('_')[-1].split('.')[0]))
 
 def main():
     txt_files = os.listdir(SPLIT_TXT_DIR)
