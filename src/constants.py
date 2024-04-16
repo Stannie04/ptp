@@ -15,4 +15,5 @@ NOTE_DICT = {
     "64th": "x",
     "128th": "o",
     "256th": "p",
+    "complex": "?",
 }
