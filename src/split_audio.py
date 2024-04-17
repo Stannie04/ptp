@@ -67,16 +67,19 @@ def pieces_by_author(author):
         pieces.append(full_name.split('.', 1)[0])
     return pieces
 
-def main():
-    if len(sys.argv) == 3:
-        split_mp3(sys.argv[1], sys.argv[2])
-        return
+def split_all():
     authors = tqdm(os.listdir(AUDIO_DIR))
     for a in authors:
         pieces = pieces_by_author(a)
         for p in pieces:
             authors.set_description(f"Splitting {a} - {p}")
             split_mp3(a, p)
+
+def main():
+    if len(sys.argv) == 3:
+        split_mp3(sys.argv[1], sys.argv[2])
+        return
+    split_all()
 
 
 if __name__ == "__main__":

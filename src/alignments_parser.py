@@ -53,13 +53,15 @@ def add_offset(alignments, offset, author, piece):
         file.close()
 
 def main():
-    alignments = alignments_from_csv(sys.argv[1], sys.argv[2])
-    add_offset(alignments, sys.argv[3], sys.argv[1], sys.argv[2])
-    # if len(sys.argv) != 3:
-    #     print("Usage: python src/parse_alignments.py <author> <piece>")
-    #     return
-    # merge_alignments_of_author(sys.argv[1], sys.argv[2])
-    # print(f"Successfully merged alignments for {sys.argv[1]} - {sys.argv[2]}.")
+
+    if len(sys.argv) == 4:
+        alignments = alignments_from_csv(sys.argv[1], sys.argv[2])
+        add_offset(alignments, sys.argv[3], sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 3:
+        merge_alignments_of_author(sys.argv[1], sys.argv[2])
+        print(f"Successfully merged alignments for {sys.argv[1]} - {sys.argv[2]}.")
+    else:
+        print("Usage: python3 merge_alignments.py <author> <piece> (<offset>)")
 
 if __name__ == "__main__":
     main()

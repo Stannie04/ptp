@@ -19,7 +19,10 @@ def parse_note(note, score, i):
     note_seq = f"{note.pitch}{NOTE_DICT[note.duration.type]}{dots}"
     if note.tie:
         if note.tie.type == "start":
-            return f"{note_seq}{handle_tie(note, score, i)}"
+            add = handle_tie(note, score, i)
+            if add:
+                return f"{note_seq}{add}"
+            return f"{note_seq}"
         return ""
     return note_seq
 
@@ -36,22 +39,27 @@ def parse_chord(chord, score, i):
             chord_seq.append(note_seq)
     return ",".join(chord_seq)
 
-def mxl_to_seq(score):
+def mxl_to_seq(score, measure_split):
     seq = []
     first = True
     score = score.chordify()
     score_list = list(score.recurse())
     for i, el in enumerate(score_list):
         if isinstance(el, music21.stream.Measure):
-            if el.number % 3 == 1:
+            if el.number % measure_split == 0:
                 if first:
                     first = False
                 else:
-                    seq.append(':')
+                    seq.append(f':{bpm}')
             else:
-                seq.append('|')
+                seq.append(']')
         elif isinstance(el, music21.chord.Chord):
             seq.append(parse_chord(el, score_list, i))
+        elif isinstance(el, music21.tempo.MetronomeMark):
+            bpm = str(el.number)
+            if bpm == "None":
+                bpm = str(el.numberSounding)
+            seq.append(bpm)
     return ' '.join(seq)
 
 def split_seq_and_write(composition, seq):
@@ -63,20 +71,25 @@ def split_seq_and_write(composition, seq):
             file.write(segment.strip())
             file.close()
 
-def main():
-    if len(sys.argv) != 1:
-        mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
-        seq = mxl_to_seq(mxl_file)
-        # split_seq_and_write(sys.argv[1], seq)
-        print(seq)
-        print(f"Successfully parsed {sys.argv[1]}.")
-    else:
+def parse_mxl(measure_split=3):
         compositions = tqdm(os.listdir(MXL_DIR))
         for c in compositions:
             compositions.set_description(f"Processing {c}")
             mxl_file = music21.converter.parse(f'{MXL_DIR}/{c}')
-            seq = mxl_to_seq(mxl_file)
+            seq = mxl_to_seq(mxl_file, int(measure_split))
             split_seq_and_write(c, seq)
+
+
+def main():
+    if len(sys.argv) != 1:
+        mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
+        # mxl_file.show('text')
+        seq = mxl_to_seq(mxl_file, 3)
+        # split_seq_and_write(sys.argv[1], seq)
+        print(seq)
+        print(f"Successfully parsed {sys.argv[1]}.")
+    else:
+        parse_mxl()
 
 if __name__ == "__main__":
     main()
