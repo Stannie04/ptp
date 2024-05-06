@@ -79,13 +79,10 @@ def parse_mxl(measure_split=3):
             seq = mxl_to_seq(mxl_file, int(measure_split))
             split_seq_and_write(c, seq)
 
-
 def main():
     if len(sys.argv) != 1:
         mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
-        # mxl_file.show('text')
         seq = mxl_to_seq(mxl_file, 3)
-        # split_seq_and_write(sys.argv[1], seq)
         print(seq)
         print(f"Successfully parsed {sys.argv[1]}.")
     else:

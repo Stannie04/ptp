@@ -400,6 +400,8 @@ FodyWeavers.xsd
 *.txt
 *.wav
 *.mxl
+*.pt
+src/tacotron2/outdir/*
 LICENSE
 !data/examples/waveglow/*
 !data/examples/tacotron/*
