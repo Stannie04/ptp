@@ -13,13 +13,18 @@ def txt_to_string(file):
     with open(f"{SPLIT_TXT_DIR}/{file}") as f:
         return f.read()
 
+def get_chord_sequence(txt):
+    chords = txt.split(' ')[1:] # Remove BPM
+    split_chords = [ch.split(',') for ch in chords]
+    return [len(ch) for ch in split_chords]
+
 def get_split_composition_files(score_name):
     """Return the split txt files corresponding to the given filename."""
 
-    file_list = os.listdir(f"{SPLIT_TXT_DIR}")
+    file_list = os.listdir(SPLIT_TXT_DIR)
     l = [f for f in file_list if re.match(f"{score_name}_\d+\.txt", f)]
     if not l:
-        print(f"WARNING: No split files found for {l}")
+        print(f"WARNING: No split files found for {score_name}.")
     return sorted(l, key=lambda x: int(x.split('_')[-1].split('.')[0]))
 
 def main():

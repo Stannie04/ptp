@@ -32,10 +32,9 @@ def split_mp3(author, piece):
     n_notes = [count_notes(txt_to_string(file)) for file in split_files]
     # Sanity check
     if sum(n_notes) != len(alignments):
-        print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments. Ignoring.")
+        print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments.")
         print(f"Number of notes in split files: {sum(n_notes)}, {n_notes}")
         print(f"Number of alignments: {len(alignments)}")
-        # return None
 
     splits = get_split_times(alignments, n_notes)
     audio_filename = f"{author}_{piece}"
@@ -75,30 +74,11 @@ def split_all():
             authors.set_description(f"Splitting {a} - {p}")
             split_mp3(a, p)
 
-def get_full_mxl_len():
-    full_scores = os.listdir(MXL_DIR)
-    score_names = sorted([f.split('.')[0] for f in full_scores])
-    for score in score_names:
-        split_files = get_split_composition_files(score)
-        n_notes = [count_notes(txt_to_string(file)) for file in split_files]
-        print(f"{score}: {sum(n_notes)}")
-
-def get_author_length():
-    authors = os.listdir(AUDIO_DIR)
-    for a in authors:
-        pieces = pieces_by_author(a)
-        for p in pieces:
-            alignments = alignments_from_csv(a, p)
-            print(f"{a}_{p}: {len(alignments)}")
 
 def main():
     if len(sys.argv) == 3:
         split_mp3(sys.argv[1], sys.argv[2])
         return
-    elif sys.argv[1] == "len":
-        get_full_mxl_len()
-    elif sys.argv[1] == "author":
-        get_author_length()
     else:
         split_all()
     return
