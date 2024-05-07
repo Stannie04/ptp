@@ -34,7 +34,6 @@ def note_nr_from_alignment(author, piece, split_nr, verbose=False):
 
 def find_alignment_errors(author, piece):
 
-
     split_files = get_split_composition_files(piece)
     txt_split_files = [txt_to_string(file) for file in split_files]
     alignments = alignments_from_csv(author, piece)
@@ -48,12 +47,26 @@ def find_alignment_errors(author, piece):
                 return
             i += ch
 
+def chord_start_errors(author, piece):
+    """Prints the split number and line number of the first note of each chord that does not start at the beginning of a split."""
+
+    offset = 0
+    split_files = get_split_composition_files(piece)
+    start_notes = [note_nr_from_alignment(author, piece, i) for i in range(len(split_files))]
+    alignments = alignments_from_csv(author, piece)
+    for enum, _ in enumerate(split_files):
+        if start_notes[enum] == 0: continue
+        if alignments[start_notes[enum]+offset][0] == alignments[start_notes[enum]-1+offset][0]:
+            print(f"Chord in split {enum} (line {start_notes[enum]+2}) does not start at the beginning of the split.")
+            offset += 1
+
 def main():
     if len(sys.argv) == 1:
         get_full_mxl_len()
         get_author_length()
     if len(sys.argv) == 3:
-        find_alignment_errors(sys.argv[1], sys.argv[2])
+        # find_alignment_errors(sys.argv[1], sys.argv[2])
+        chord_start_errors(sys.argv[1], sys.argv[2])
     if len(sys.argv) == 4:
         note_nr_from_alignment(sys.argv[1], sys.argv[2], int(sys.argv[3]), verbose=True)
 
