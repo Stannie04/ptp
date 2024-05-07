@@ -40,11 +40,20 @@ def parse_chord(chord, score, i):
     return ",".join(chord_seq)
 
 def mxl_to_seq(score, measure_split):
+    full_seq = []
     seq = []
     first = True
     score = score.chordify()
     score_list = list(score.recurse())
     for i, el in enumerate(score_list):
+        if isinstance(el, music21.bar.Repeat):
+            if el.direction == 'end':
+                full_seq.extend(seq)
+                full_seq.extend(seq)
+                seq = []
+            elif el.direction == 'start':
+                full_seq.extend(seq)
+                seq = []
         if isinstance(el, music21.stream.Measure):
             if el.number % measure_split == 0:
                 if first:
@@ -60,7 +69,8 @@ def mxl_to_seq(score, measure_split):
             if bpm == "None":
                 bpm = str(el.numberSounding)
             seq.append(bpm)
-    return ' '.join(seq)
+    full_seq.extend(seq)
+    return ' '.join(full_seq)
 
 def split_seq_and_write(composition, seq):
     """Write each split sequence (a given number of bars) to a separate text file."""
