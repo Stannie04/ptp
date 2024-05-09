@@ -30,6 +30,7 @@ def empty_dirs():
 def main():
     if len(sys.argv) != 2:
         print("Usage: python prepare_data.py <measures_per_split>")
+        sys.exit(1)
     empty_dirs()
     parse_mxl(sys.argv[1])
     split_all()
