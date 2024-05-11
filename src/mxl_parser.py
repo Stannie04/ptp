@@ -1,9 +1,9 @@
 import os
 import sys
+import json
 import music21
 from constants import MXL_DIR, NOTE_DICT, SPLIT_TXT_DIR, SPLIT_AUDIO_DIR
 from tqdm import tqdm
-from utils import note_nr_from_alignment
 
 def handle_tie(note, score, i):
     remaining_list = score[i:]
@@ -40,12 +40,23 @@ def parse_chord(chord, score, i):
             chord_seq.append(note_seq)
     return ",".join(chord_seq)
 
-def mxl_to_seq(score, measure_split):
+def remove_last_measure(seq):
+    for i, el in enumerate(seq[::-1]):
+        if el == ']' or el == ':':
+            return seq[:-i]
+    return seq
+
+def mxl_to_seq(score_name, score, measure_split):
     full_seq = []
     seq = []
-    first = True
     score = score.chordify()
     score_list = list(score.recurse())
+    bpm = None
+    seen_measures = []
+
+    with open('alt_endings.json', 'r') as file:
+        alt_endings = json.load(file)
+
     for i, el in enumerate(score_list):
         if isinstance(el, music21.bar.Repeat):
             if el.direction == 'end':
@@ -55,23 +66,36 @@ def mxl_to_seq(score, measure_split):
             elif el.direction == 'start':
                 full_seq.extend(seq)
                 seq = []
+
         if isinstance(el, music21.stream.Measure):
+            if el.number in seen_measures and el.number in alt_endings.get(score_name, []):
+                print(f"Found alternate ending in {score_name} at measure {el.number}.")
+                full_seq = remove_last_measure(full_seq)
+            seen_measures.append(el.number)
+
             if el.number % measure_split == 0:
-                if first:
-                    first = False
-                else:
-                    seq.append(f':{bpm}')
+                seq.append(':')
+                if bpm:
+                    seq.append(f"{bpm}")
             else:
                 seq.append(']')
+
         elif isinstance(el, music21.chord.Chord):
             seq.append(parse_chord(el, score_list, i))
+
         elif isinstance(el, music21.tempo.MetronomeMark):
             bpm = str(el.number)
             if bpm == "None":
                 bpm = str(el.numberSounding)
             seq.append(bpm)
+
     full_seq.extend(seq)
-    return ' '.join(full_seq)
+
+    """
+    Remove first measure marker.
+    This needs to be done here and not initially, as potential repeats need the first measure marker to properly copy the sequence.
+    """
+    return ' '.join(full_seq[1:])
 
 def split_seq_and_write(composition, seq):
     """Write each split sequence (a given number of bars) to a separate text file."""
@@ -87,7 +111,7 @@ def parse_mxl(measure_split=1):
         for c in compositions:
             compositions.set_description(f"Processing {c}")
             mxl_file = music21.converter.parse(f'{MXL_DIR}/{c}')
-            seq = mxl_to_seq(mxl_file, int(measure_split))
+            seq = mxl_to_seq(c, mxl_file, int(measure_split))
             split_seq_and_write(c, seq)
 
 
@@ -125,11 +149,11 @@ def double_notes(c):
 
 def main():
     if len(sys.argv) != 1:
-        double_notes(sys.argv[1])
-        # mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
-        # seq = mxl_to_seq(mxl_file, 3)
+        # double_notes(sys.argv[1])
+        mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
+        seq = mxl_to_seq(mxl_file, 3)
         # print(seq)
-        # print(f"Successfully parsed {sys.argv[1]}.")
+        print(f"Successfully parsed {sys.argv[1]}.")
     else:
         parse_mxl()
         # compositions = tqdm(os.listdir(MXL_DIR))
