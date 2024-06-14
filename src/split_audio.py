@@ -6,7 +6,7 @@ from tqdm import tqdm
 from pydub import AudioSegment
 from txt_parser import get_split_composition_files, count_notes, txt_to_string
 from alignments_parser import alignments_from_csv
-from constants import AUDIO_DIR, SPLIT_AUDIO_DIR, MXL_DIR
+from constants import AUDIO_DIR, SPLIT_AUDIO_DIR, ALIGNMENT_DIR
 
 def get_split_times(alignments, n_notes):
     current_note = 0
@@ -28,8 +28,10 @@ def split_mp3(author, piece):
     """Split an mp3 file into segments based on the given splits."""
 
     split_files = get_split_composition_files(piece)
+
     alignments = alignments_from_csv(author, piece)
     n_notes = [count_notes(txt_to_string(file)) for file in split_files]
+
     # Sanity check
     if sum(n_notes) != len(alignments):
         print(f"ERROR ({author}_{piece}): The number of notes in the split files does not match the number of alignments.")
@@ -53,7 +55,7 @@ def split_mp3(author, piece):
         end_frame = int(float(end)*1000)
 
         segment = audio[start_frame:end_frame]
-        segment.export(f"{SPLIT_AUDIO_DIR}/{audio_filename}_{i}.wav", format="wav", parameters=["-ac", "1"])
+        segment.export(f"{SPLIT_AUDIO_DIR}/{audio_filename}_{i+1}.wav", format="wav", parameters=["-ac", "1"])
 
 
 def pieces_by_author(author):
@@ -74,10 +76,30 @@ def split_all():
             authors.set_description(f"Splitting {a} - {p}")
             split_mp3(a, p)
 
+def split_full_to_mvt(author, full_piece):
+
+    full_filename = f"{author}_{full_piece}"
+
+    author_alignments = os.listdir(f"{ALIGNMENT_DIR}/{author}")
+    piece_alignments = sorted([a for a in author_alignments if a.startswith(full_filename)])
+
+    try: audio = AudioSegment.from_file(f"{AUDIO_DIR}/{author}/{full_filename}.mp3")
+    except: audio = AudioSegment.from_file(f"{AUDIO_DIR}/{author}/{full_filename}.opus")
+
+    audio = audio.set_frame_rate(22050)
+
+    for i,p in enumerate(piece_alignments):
+        mvt_alignments = alignments_from_csv(author, p[len(author)+1:-4])
+        end_split = mvt_alignments[-1][1]
+        end_frame = int(float(end_split)*1000)
+
+        segment = audio[:end_frame]
+        segment.export(f"{AUDIO_DIR}/{author}/{full_filename}_mov{i+1}.mp3", format="mp3", parameters=["-ac", "1"])
+        audio = audio[end_frame:]
 
 def main():
     if len(sys.argv) == 3:
-        split_mp3(sys.argv[1], sys.argv[2])
+        split_full_to_mvt(sys.argv[1], sys.argv[2])
         return
     else:
         split_all()

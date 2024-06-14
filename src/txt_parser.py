@@ -6,7 +6,7 @@ from constants import SPLIT_TXT_DIR
 def count_notes(seq):
     """Count the number of notes in a sequence, excluding rests."""
 
-    return len(re.findall(r'[A-G]', seq))
+    return len(re.findall(r'[A-L]', seq))
 
 def txt_to_string(file):
     """Read a txt file and return its contents as a string."""

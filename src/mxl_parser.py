@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import music21
-from constants import MXL_DIR, NOTE_DICT, SPLIT_TXT_DIR, SPLIT_AUDIO_DIR
+from constants import MXL_DIR, NOTE_DICT, SPLIT_TXT_DIR, SPLIT_AUDIO_DIR, NOTE_NAMES
 from tqdm import tqdm
 
 def handle_tie(note, score, i):
@@ -17,7 +17,7 @@ def handle_tie(note, score, i):
 
 def parse_note(note, score, i):
     dots = ">" * note.duration.dots
-    note_seq = f"{note.pitch}{NOTE_DICT[note.duration.type]}{dots}"
+    note_seq = f"{NOTE_NAMES[note.pitch.name]}{note.pitch.octave}{NOTE_DICT[note.duration.type]}{dots}"
     if note.tie:
         if note.tie.type == "start":
             add = handle_tie(note, score, i)
@@ -69,7 +69,6 @@ def mxl_to_seq(score_name, score, measure_split):
 
         if isinstance(el, music21.stream.Measure):
             if el.number in seen_measures and el.number in alt_endings.get(score_name, []):
-                print(f"Found alternate ending in {score_name} at measure {el.number}.")
                 full_seq = remove_last_measure(full_seq)
             seen_measures.append(el.number)
 
@@ -102,7 +101,7 @@ def split_seq_and_write(composition, seq):
 
     segments = seq.split(':')
     for i, segment in enumerate(segments):
-        with open(f"{SPLIT_TXT_DIR}/{composition[:-4]}_{i}.txt", 'w') as file:
+        with open(f"{SPLIT_TXT_DIR}/{composition[:-4]}_{i+1}.txt", 'w') as file:
             file.write(segment.strip())
             file.close()
 
@@ -149,10 +148,9 @@ def double_notes(c):
 
 def main():
     if len(sys.argv) != 1:
-        # double_notes(sys.argv[1])
         mxl_file = music21.converter.parse(f'{MXL_DIR}/{sys.argv[1]}')
         seq = mxl_to_seq(mxl_file, 3)
-        # print(seq)
+        print(seq)
         print(f"Successfully parsed {sys.argv[1]}.")
     else:
         parse_mxl()

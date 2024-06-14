@@ -1,9 +1,9 @@
 #!/bin/bash
 
 PTP_DATA_DIR="data/split_audio"
-TACOTRON_DATA_DIR="../waveglow/tacotron2/data"
+TACOTRON_DATA_DIR="src/tacotron2/data"
 
-FILELIST_DIR="../waveglow/tacotron2/filelists"
+FILELIST_DIR="src/tacotron2/filelists"
 TRAIN_FILE="$FILELIST_DIR/ljs_audio_text_train_filelist.txt"
 VAL_FILE="$FILELIST_DIR/ljs_audio_text_val_filelist.txt"
 

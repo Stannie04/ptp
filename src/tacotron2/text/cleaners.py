@@ -64,6 +64,12 @@ def collapse_whitespace(text):
 def convert_to_ascii(text):
   return unidecode(text)
 
+def remove_double_spaces(text):
+  return text.replace('  ', ' ')
+
+def ptp_cleaners(text):
+  text = remove_double_spaces(text)
+  return text
 
 def basic_cleaners(text):
   '''Basic pipeline that lowercases and collapses whitespace without transliteration.'''
