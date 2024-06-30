@@ -405,3 +405,4 @@ src/tacotron2/outdir/*
 LICENSE
 !misc_data/examples/waveglow/*
 !misc_data/examples/tacotron/*
+!examples/*/*/*

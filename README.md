@@ -3,6 +3,8 @@
 This repository provides all code used for training a model through the PTP process. The model uses the Tacotron 2 acoustic model and WaveGlow as a vocoder to convert sheet music to an expressive violin performance. The dataset provided is a modified version of the Bach Violin dataset, slightly altered to simplify preprocessing.
 
 ## Setup
+```mkdir data filelists```
+
 ```pip install -r requirements.txt```
 
 
