@@ -2,3 +2,12 @@ defusedxml==0.7.1
 music21==9.1.0
 pydub==0.25.1
 tqdm==4.66.1
+matplotlib==2.1.0
+tensorflow==1.15.2
+numpy==1.13.3
+inflect==0.2.5
+librosa==0.6.0
+scipy==1.0.0
+Unidecode==1.0.22
+tensorboardX==1.1
+pillow

@@ -1,8 +1,8 @@
 import os
 import sys
-from split_audio import split_all
-from mxl_parser import parse_mxl
-from txt_parser import txt_to_string
+from preprocessing.split_audio import split_all
+from preprocessing.mxl_parser import parse_mxl
+from preprocessing.txt_parser import txt_to_string
 from constants import SPLIT_TXT_DIR, ALIGNMENT_DIR, SPLIT_AUDIO_DIR
 
 def write_to_data():
@@ -19,7 +19,7 @@ def write_to_data():
 
     with open("data.txt", 'w') as file:
         for data in all_data:
-            file.write(f"data/{data[0]}|{data[1]}\n")
+            file.write(f"misc_data/{data[0]}|{data[1]}\n")
         file.close()
 
 def empty_dirs():

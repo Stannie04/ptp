@@ -403,5 +403,5 @@ FodyWeavers.xsd
 *.pt
 src/tacotron2/outdir/*
 LICENSE
-!data/examples/waveglow/*
-!data/examples/tacotron/*
+!misc_data/examples/waveglow/*
+!misc_data/examples/tacotron/*

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PTP_DATA_DIR="data/split_audio"
+PTP_DATA_DIR="misc_data/split_audio"
 TACOTRON_DATA_DIR="src/tacotron2/data"
 
 FILELIST_DIR="src/tacotron2/filelists"
